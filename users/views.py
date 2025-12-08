@@ -14,6 +14,12 @@ from .serializers import (
 )
 
 
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """Session authentication without CSRF enforcement"""
+    def enforce_csrf(self, request):
+        return  # Skip CSRF check
+
+
 def verify_recaptcha(token):
     """Verify reCAPTCHA token with Google"""
     secret_key = os.getenv('RECAPTCHA_SECRET_KEY', '')
@@ -163,11 +169,12 @@ def get_recaptcha_site_key(request):
 
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def user_logout(request):
     """Logout user"""
-    request.user.is_online = False
-    request.user.save()
+    if request.user.is_authenticated:
+        request.user.is_online = False
+        request.user.save()
     logout(request)
     
     return Response({
