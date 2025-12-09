@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -11,6 +12,7 @@ from users.models import User
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def list_conversations(request):
     """Get all conversations for current user"""
@@ -23,7 +25,7 @@ def list_conversations(request):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def start_conversation(request):
     """Start a new conversation with a user"""
@@ -69,6 +71,7 @@ def start_conversation(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def get_messages(request, conversation_id):
     """Get messages for a conversation"""
@@ -93,7 +96,7 @@ def get_messages(request, conversation_id):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def send_message(request, conversation_id):
     """Send a message in a conversation"""
@@ -125,6 +128,7 @@ def send_message(request, conversation_id):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def get_conversation(request, conversation_id):
     """Get a single conversation"""

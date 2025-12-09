@@ -1,7 +1,8 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
@@ -51,7 +52,7 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def generate_anonymous_user(request):
     """Generate a random anonymous user"""
@@ -69,18 +70,22 @@ def generate_anonymous_user(request):
     user.set_unusable_password()
     user.save()
     
-    # Log in the user
+    # Create token for the user
+    token, _ = Token.objects.get_or_create(user=user)
+    
+    # Also log in for session (optional, for local dev)
     login(request, user)
     
     return Response({
         'success': True,
         'message': 'Anonymous user created',
-        'user': UserSerializer(user).data
+        'user': UserSerializer(user).data,
+        'token': token.key
     }, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def user_login(request):
     """Login with username and password"""
@@ -103,10 +108,14 @@ def user_login(request):
         user.is_online = True
         user.save()
         
+        # Create or get token
+        token, _ = Token.objects.get_or_create(user=user)
+        
         return Response({
             'success': True,
             'message': 'Login successful',
-            'user': UserSerializer(user).data
+            'user': UserSerializer(user).data,
+            'token': token.key
         })
     
     return Response({
@@ -116,7 +125,7 @@ def user_login(request):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def user_signup(request):
     """Signup with username, password, and CAPTCHA verification"""
@@ -146,13 +155,17 @@ def user_signup(request):
         user_type='registered'
     )
     
+    # Create token
+    token, _ = Token.objects.get_or_create(user=user)
+    
     # Log in the user
     login(request, user)
     
     return Response({
         'success': True,
         'message': 'Account created successfully',
-        'user': UserSerializer(user).data
+        'user': UserSerializer(user).data,
+        'token': token.key
     }, status=status.HTTP_201_CREATED)
 
 
@@ -184,6 +197,7 @@ def user_logout(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def get_profile(request):
     """Get current user profile"""
@@ -194,7 +208,7 @@ def get_profile(request):
 
 
 @api_view(['PUT', 'PATCH'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
     """Update user profile"""
@@ -215,7 +229,7 @@ def update_profile(request):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def change_password(request):
     """Change user password"""
@@ -245,6 +259,7 @@ def change_password(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([AllowAny])
 def check_auth(request):
     """Check if user is authenticated"""
@@ -259,6 +274,7 @@ def check_auth(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def search_users(request):
     """Search users by username"""

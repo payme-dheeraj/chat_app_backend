@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from users.authentication import CsrfExemptSessionAuthentication
@@ -23,7 +24,7 @@ def list_posts(request):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_post(request):
     """Create a new post"""
@@ -56,7 +57,7 @@ def get_post(request, post_id):
 
 
 @api_view(['DELETE'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_post(request, post_id):
     """Delete a post (only by author)"""
@@ -76,7 +77,7 @@ def delete_post(request, post_id):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def toggle_like(request, post_id):
     """Like or unlike a post"""
@@ -100,7 +101,7 @@ def toggle_like(request, post_id):
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def post_comments(request, post_id):
     """Get or add comments on a post"""
@@ -137,7 +138,7 @@ def post_comments(request, post_id):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def vote_poll(request, post_id):
     """Vote on a poll"""
@@ -187,6 +188,7 @@ def vote_poll(request, post_id):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication, CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def my_posts(request):
     """Get current user's posts"""
