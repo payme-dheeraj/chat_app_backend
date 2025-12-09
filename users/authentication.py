@@ -10,8 +10,16 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 
 class DisableCSRFForAPI(MiddlewareMixin):
-    """Middleware to disable CSRF for API endpoints"""
+    """Middleware to disable CSRF for all API endpoints"""
     
     def process_request(self, request):
+        # Mark all API requests as CSRF exempt
         if request.path.startswith('/api/'):
             setattr(request, '_dont_enforce_csrf_checks', True)
+        return None
+    
+    def process_view(self, request, callback, callback_args, callback_kwargs):
+        # Also exempt at the view level
+        if request.path.startswith('/api/'):
+            setattr(request, '_dont_enforce_csrf_checks', True)
+        return None
