@@ -1,19 +1,13 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from users.authentication import CsrfExemptSessionAuthentication
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer, MessageCreateSerializer
 from users.models import User
-
-
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-    """Session authentication without CSRF enforcement for API"""
-    def enforce_csrf(self, request):
-        return  # Skip CSRF check
 
 
 @api_view(['GET'])
